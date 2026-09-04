@@ -57,3 +57,53 @@ window.addEventListener('scroll', function () {
 }, { passive: true });
 
 updateScrub();
+
+/* ---------- Nav scrollspy: highlight the section in view ---------- */
+var navLinks = Array.prototype.slice.call(document.querySelectorAll('.site-nav nav a[href^="#"]'));
+var navSections = navLinks
+  .map(function (link) { return document.querySelector(link.getAttribute('href')); })
+  .filter(Boolean);
+
+if (navLinks.length && 'IntersectionObserver' in window) {
+  var navObserver = new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) {
+      var link = document.querySelector('.site-nav nav a[href="#' + entry.target.id + '"]');
+      if (!link) return;
+      if (entry.isIntersecting) {
+        navLinks.forEach(function (l) { l.classList.remove('active'); });
+        link.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-40% 0px -55% 0px', threshold: 0 });
+
+  navSections.forEach(function (section) { navObserver.observe(section); });
+}
+
+/* ---------- Contact form: no backend on a static site, so this opens ---------- */
+/* the visitor's email client with the message pre-filled via mailto:       */
+var contactForm = document.getElementById('contactForm');
+if (contactForm) {
+  contactForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var first = contactForm.firstName.value.trim();
+    var last = contactForm.lastName.value.trim();
+    var service = contactForm.service.value;
+    var email = contactForm.email.value.trim();
+    var message = contactForm.message.value.trim();
+
+    var subject = 'Project inquiry' + (service ? ' — ' + service : '');
+    var bodyLines = [
+      'Name: ' + (first + ' ' + last).trim(),
+      'Email: ' + email,
+      service ? 'Service: ' + service : null,
+      '',
+      message
+    ].filter(function (line) { return line !== null; });
+
+    var mailto = 'mailto:amalanil170899@gmail.com'
+      + '?subject=' + encodeURIComponent(subject)
+      + '&body=' + encodeURIComponent(bodyLines.join('\n'));
+
+    window.location.href = mailto;
+  });
+}
