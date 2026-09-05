@@ -1,0 +1,31 @@
+.hero-3d-stage {
+  --hero-3d-bg: #0e0e0e;
+  position: relative;
+  width: min(480px, 90vw);
+  aspect-ratio: 500 / 407; /* matches the cropped character frame ratio; adjust if you re-crop */
+  margin: 0 auto;
+}
+
+.hero-3d-stage canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Three.js icon-orbit canvas sits behind the character canvas */
+.hero-3d-orbit {
+  z-index: 1;
+}
+
+.hero-3d-character {
+  z-index: 2;
+  cursor: pointer;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-3d-stage * {
+    animation: none !important;
+    transition: none !important;
+  }
+}

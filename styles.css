@@ -215,6 +215,96 @@
     .hero .role{animation:none;opacity:1;}
   }
   .hero .role strong{color:var(--text);font-weight:600;}
+
+  /* ---------- Hero avatar (placeholder) ---------- */
+  .hero-avatar{
+    position:absolute;
+    bottom:150px;
+    right:var(--gutter);
+    width:320px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:14px;
+  }
+  @media (max-width:1100px){.hero-avatar{display:none;}}
+  @media (min-width:1101px){.hero .scroll-cue{visibility:hidden;}}
+
+  .avatar-stage{
+    position:relative;
+    width:320px;
+    height:420px;
+  }
+  .avatar-svg{
+    position:absolute;
+    top:20px;
+    left:0;
+    width:320px;
+    height:380px;
+    overflow:visible;
+  }
+  .avatar-card{
+    position:absolute;
+    top:20px;
+    left:20px;
+    width:280px;
+    height:340px;
+    border-radius:20px;
+    background:#FAF9F6;
+    border:1px solid var(--line);
+    box-shadow:0 24px 48px -20px rgba(0,0,0,0.45);
+    overflow:hidden;
+    display:flex;
+    align-items:flex-end;
+    justify-content:center;
+  }
+  .avatar-photo{
+    width:100%;
+    height:auto;
+    display:block;
+    transform:translateY(-6%) scale(1.32);
+    transform-origin:center 30%;
+  }
+
+  .avatar-icon{
+    position:absolute;
+    z-index:2;
+    transform:translateY(var(--drift,0px));
+    transition:transform 0.5s cubic-bezier(.16,.8,.24,1);
+  }
+  .avatar-icon-bob{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    width:46px;
+    height:46px;
+    border-radius:50%;
+    border:1px solid var(--line);
+    background:var(--bg-alt);
+    color:var(--text-soft);
+    font-family:'IBM Plex Mono',monospace;
+    font-size:13px;
+    font-weight:500;
+    animation:iconBob 4.5s ease-in-out infinite;
+    transition:color 0.3s ease, border-color 0.3s ease, transform 0.3s ease;
+  }
+  @keyframes iconBob{
+    0%,100%{transform:translateY(0);}
+    50%{transform:translateY(-9px);}
+  }
+  .avatar-icon.is-active .avatar-icon-bob{
+    color:var(--cyan);
+    border-color:var(--cyan);
+    transform:scale(1.12);
+  }
+  .avatar-caption{
+    color:var(--text-soft);
+    opacity:0.55;
+    font-size:11px;
+  }
+  @media (prefers-reduced-motion:reduce){
+    .avatar-icon-bob{animation:none;}
+  }
   .hero .footer-row{
     display:flex;
     justify-content:space-between;

@@ -1,0 +1,15 @@
+{
+  "_comment": "This describes a continuous idle-loop character sequence (gaze wander + blinks + expression baked in throughout) — not separate triggerable clips. Used by character-loop.js.",
+
+  "framePattern": "assets/character/frame_{n}.webp",
+  "frameCount": 186,
+  "padLength": 4,
+  "fps": 24,
+
+  "displayAspectRatio": "500:407",
+  "parallax": {
+    "strength": 1,
+    "maxShiftPx": 10,
+    "maxTiltDeg": 2.5
+  }
+}
