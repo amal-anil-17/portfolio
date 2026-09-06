@@ -70,25 +70,23 @@ class IconOrbit {
   _buildIcons() {
     const loader = new THREE.TextureLoader();
     const count = this.icons.length;
-    const radius = 3.4;
+    this.radius = 3.0; // screen-facing circle radius, in world units
 
     this.sprites = this.icons.map((icon, i) => {
       const texture = icon.src
         ? loader.load(icon.src)
         : this._makePlaceholderTexture(icon.label, icon.color || '#4b5563');
 
-      const material = new THREE.SpriteMaterial({ map: texture, transparent: true });
+      const material = new THREE.SpriteMaterial({ map: texture, transparent: true, depthTest: false, depthWrite: false });
       const sprite = new THREE.Sprite(material);
 
-      const scale = 0.9;
+      const scale = 0.85;
       sprite.scale.set(scale, scale, 1);
 
       const angle = (i / count) * Math.PI * 2;
-      sprite.userData.angle = angle;
-      sprite.userData.radius = radius;
-      sprite.userData.bobOffset = Math.random() * Math.PI * 2;
+      sprite.userData.baseAngle = angle;
+      sprite.renderOrder = 2;
 
-      sprite.position.set(Math.cos(angle) * radius, 0, Math.sin(angle) * radius);
       this.group.add(sprite);
       return sprite;
     });
@@ -112,18 +110,21 @@ class IconOrbit {
   start() {
     const animate = () => {
       const t = this.clock.getElapsedTime();
-
-      this.group.rotation.y = t * 0.18; // slow continuous orbit
+      const angularSpeed = 0.35; // radians/sec
 
       this.sprites.forEach(sprite => {
-        const { angle, radius, bobOffset } = sprite.userData;
-        sprite.position.y = Math.sin(t * 0.8 + bobOffset) * 0.25; // gentle float
+        const angle = sprite.userData.baseAngle + t * angularSpeed;
+        // Screen-facing circle: x/y trace a ring around the character; z stays 0
+        // so every icon renders in front, never clipped by the character layer beneath.
+        sprite.position.x = Math.cos(angle) * this.radius;
+        sprite.position.y = Math.sin(angle) * this.radius * 0.92; // slight vertical compression to match portrait framing
       });
 
-      // subtle parallax tilt toward the cursor
-      this.group.rotation.x += (this.mouse.y * 0.15 - this.group.rotation.x) * 0.04;
-      const targetZRot = this.mouse.x * 0.08;
-      this.group.rotation.z += (targetZRot - this.group.rotation.z) * 0.04;
+      // subtle parallax tilt toward the cursor (whole ring shifts slightly, stays screen-facing)
+      const targetX = this.mouse.x * 0.25;
+      const targetY = -this.mouse.y * 0.2;
+      this.group.position.x += (targetX - this.group.position.x) * 0.05;
+      this.group.position.y += (targetY - this.group.position.y) * 0.05;
 
       this.renderer.render(this.scene, this.camera);
       requestAnimationFrame(animate);

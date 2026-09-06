@@ -1,0 +1,87 @@
+/**
+ * Glass scroll-shrink navbar.
+ * Applies to the existing <header class="site-nav"> — no HTML structure
+ * changes needed, just add this file + nav-scroll.js (see bottom of file
+ * for the JS half) and the two <link>/<script> tags in index.html.
+ *
+ * Top of page: full-width glass bar (matches your current look).
+ * After scrolling past the threshold: shrinks to a smaller, centered,
+ * fully-rounded pill (the "second reference image" behavior).
+ */
+
+header.site-nav,
+.site-nav {
+  position: fixed !important;
+  top: 20px !important;
+  left: 50% !important;
+  right: auto !important;
+  bottom: auto !important;
+  margin: 0 !important;
+  transform: translateX(-50%) !important;
+  z-index: 100;
+
+  width: min(1400px, 92vw) !important;
+  max-width: 92vw !important;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+
+  padding: 16px 36px !important;
+  border-radius: 28px !important;
+  box-sizing: border-box !important;
+
+  background: rgba(14, 14, 14, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+
+  transition:
+    width 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+    max-width 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+    padding 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+    border-radius 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+    top 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+    background 0.45s ease;
+}
+
+/* Toggled by nav-scroll.js once the page scrolls past the threshold */
+header.site-nav.is-scrolled,
+.site-nav.is-scrolled {
+  top: 14px !important;
+  width: max-content !important;
+  max-width: 90vw !important;
+  padding: 10px 22px !important;
+  border-radius: 999px !important;
+  background: rgba(10, 10, 10, 0.72);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  gap: 20px;
+}
+
+/* Push page content below the now-fixed nav instead of hiding under it.
+   Adjust this to match your nav's natural height if content sits too
+   high/low behind it. */
+body {
+  padding-top: 92px;
+}
+
+@media (max-width: 640px) {
+  .site-nav {
+    padding: 12px 20px;
+    gap: 14px;
+  }
+  .site-nav.is-scrolled {
+    padding: 8px 16px;
+  }
+  body {
+    padding-top: 76px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-nav {
+    transition: none;
+  }
+}
