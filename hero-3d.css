@@ -1,3 +1,18 @@
+/* nav-glass.css pushes the whole body down (92px desktop / 76px mobile) to
+   clear the now-fixed floating nav. Left alone, a hero that's min-height:
+   100svh would then always extend that same amount past the bottom of the
+   screen, since 100svh assumes starting from y=0. Subtracting it here
+   keeps the whole hero content within the first screen instead. */
+.hero {
+  min-height: calc(100svh - 92px);
+  padding-top: 28px;
+}
+@media (max-width: 640px) {
+  .hero {
+    min-height: calc(100svh - 76px);
+  }
+}
+
 .hero-3d-stage {
   --hero-3d-bg: #0e0e0e;
   position: relative;
@@ -5,8 +20,23 @@
   aspect-ratio: 1 / 0.95;
   margin: 0 auto;
   /* pulls the following heading up so it overlaps the lower part of the
-     character, per the "name in front of the character" hero layout */
+     character, per the "name in front of the character" hero layout.
+     On wide screens the heading is hidden instead (see below), so this
+     gets overridden there to a normal positive gap. */
   margin-bottom: -60px;
+}
+
+/* Larger stage on wide screens — character reads as the focal point   */
+/* instead of competing with a name that's already in the nav bar.     */
+@media (min-width: 900px) {
+  .hero-3d-stage {
+    width: min(700px, 52vw, 45vh);
+  }
+}
+@media (min-width: 1500px) {
+  .hero-3d-stage {
+    width: min(820px, 48vw, 50vh);
+  }
 }
 
 .hero-3d-stage canvas {
@@ -51,9 +81,33 @@
   }
 }
 
+/* Wide screens: the nav already shows "AMAL ANILKUMAR", so the big hero
+   name is redundant here and just competes with the character for
+   attention — drop it and let the character be the focal point. Swap
+   the stage's overlap margin for a normal gap since there's no heading
+   left to overlap. */
+@media (min-width: 900px) {
+  .hero h1 {
+    display: none;
+  }
+  .hero-3d-stage {
+    margin-bottom: 32px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .hero-3d-stage * {
     animation: none !important;
     transition: none !important;
   }
+}
+/* First frame remains visible until the canvas can paint. */
+.hero-3d-poster {
+  position: absolute; top: 50%; left: 50%; width: 62%; height: 62%;
+  transform: translate(-50%, -50%); object-fit: fill; z-index: 1;
+}
+.hero-3d-poster[hidden] { display: none; }
+.hero-3d-stage { max-width: 100%; }
+@media (max-width: 640px) {
+  .hero { min-height: calc(100svh - 132px); }
 }

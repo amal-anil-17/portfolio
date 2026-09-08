@@ -50,7 +50,6 @@ window.addEventListener('scroll', function () {
   if (!ticking) {
     window.requestAnimationFrame(function () {
       updateScrub();
-      updateAvatarGaze();
       ticking = false;
     });
     ticking = true;
@@ -58,31 +57,6 @@ window.addEventListener('scroll', function () {
 }, { passive: true });
 
 updateScrub();
-
-/* ---------- Hero avatar: icons highlight/drift based on scroll position ---------- */
-/* through the hero. Eye-tracking (pupilLeft/pupilRight) will be re-added once  */
-/* the real avatar art with a separate pupil layer replaces this static photo. */
-var heroEl = document.getElementById('top');
-var avatarStage = document.getElementById('avatarStage');
-var avatarIcons = avatarStage ? Array.prototype.slice.call(avatarStage.querySelectorAll('.avatar-icon')) : [];
-
-function updateAvatarGaze() {
-  if (reduceMotion || !heroEl || !avatarStage || !avatarIcons.length) return;
-  if (getComputedStyle(avatarStage.parentElement).display === 'none') return;
-
-  var heroRect = heroEl.getBoundingClientRect();
-  var progress = Math.min(1, Math.max(0, -heroRect.top / heroRect.height));
-  var activeIndex = Math.min(avatarIcons.length - 1, Math.floor(progress * avatarIcons.length));
-
-  avatarIcons.forEach(function (icon, i) {
-    icon.classList.toggle('is-active', i === activeIndex);
-    var drift = (progress - 0.5) * (16 + i * 5) * (i % 2 === 0 ? 1 : -1);
-    icon.style.setProperty('--drift', drift.toFixed(1) + 'px');
-  });
-}
-
-updateAvatarGaze();
-window.addEventListener('resize', updateAvatarGaze);
 
 /* ---------- Nav scrollspy: highlight the section in view ---------- */
 var navLinks = Array.prototype.slice.call(document.querySelectorAll('.site-nav nav a[href^="#"]'));

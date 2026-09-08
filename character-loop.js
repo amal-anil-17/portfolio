@@ -33,6 +33,8 @@ class CharacterLoop {
     this.fps = options.fps ?? 24;
     this.parallaxStrength = options.parallaxStrength ?? 1;
 
+    this.motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    this.running = false;
     this.images = [];
     this.ready = false;
     this.currentFrame = 0;
@@ -42,19 +44,36 @@ class CharacterLoop {
     this.parallax = { x: 0, y: 0 };        // eased current offset
 
     this._resize();
-    window.addEventListener('resize', () => this._resize());
+    window.addEventListener('resize', () => { this._resize(); this._draw(); });
+    this.motionQuery.addEventListener('change', () => {
+      this.stop();
+      this.currentFrame = 0;
+      this.pointer = { x: 0.5, y: 0.5 };
+      this.parallax = { x: 0, y: 0 };
+      this._draw();
+      if (!this.motionQuery.matches) this._loadFrames();
+      this.start();
+    });
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) this.stop(); else this.start();
+    });
 
-    this._loadFrames().then(() => { this.ready = true; });
+    this._loadFrames();
   }
 
   /** Normalized (0..1, 0..1) pointer position relative to the character's bounding box. */
   setPointer(nx, ny) {
+    if (this.motionQuery.matches) return;
     this.pointer.x = Math.min(1, Math.max(0, nx));
     this.pointer.y = Math.min(1, Math.max(0, ny));
   }
 
   start() {
+    if (this.running || document.hidden) return;
+    if (this.motionQuery.matches) { this._draw(); return; }
+    this.running = true;
     const loop = (t) => {
+      if (!this.running) return;
       this._update(t);
       this._draw();
       this._raf = requestAnimationFrame(loop);
@@ -63,28 +82,40 @@ class CharacterLoop {
   }
 
   stop() {
-    if (this._raf) cancelAnimationFrame(this._raf);
+    this.running = false;
+    cancelAnimationFrame(this._raf);
   }
 
   // ---- internal ----
 
   async _loadFrames() {
+    if (this.loading || this.loadedAll) return;
+    this.loading = true;
     const loadOne = (n) => new Promise((resolve) => {
-      const padded = String(n).padStart(this.padLength, '0');
+      if (this.images[n]) { resolve(); return; }
       const img = new Image();
-      img.onload = () => resolve();
-      img.onerror = () => resolve();
-      img.src = this.framePattern.replace('{n}', padded);
-      this.images[n] = img;
+      img.onload = () => {
+        this.images[n] = img;
+        if (!this.ready) {
+          this.ready = true;
+          this.currentFrame = n;
+          this._draw();
+        }
+        resolve();
+      };
+      img.onerror = resolve;
+      img.src = this.framePattern.replace('{n}', String(n).padStart(this.padLength, '0'));
     });
-    // Load sequentially in small batches so the first frame paints fast
-    // instead of waiting on all 186 requests at once.
-    const batchSize = 12;
-    for (let i = 0; i < this.frameCount; i += batchSize) {
-      const batch = [];
-      for (let j = i; j < Math.min(i + batchSize, this.frameCount); j++) batch.push(loadOne(j));
-      await Promise.all(batch);
-    }
+    try {
+      await loadOne(0);
+      for (let i = 1; i < this.frameCount; i += 6) {
+        if (this.motionQuery.matches) return;
+        const batch = [];
+        for (let j = i; j < Math.min(i + 6, this.frameCount); j++) batch.push(loadOne(j));
+        await Promise.all(batch);
+      }
+      this.loadedAll = true;
+    } finally { this.loading = false; }
   }
 
   _update(t) {
@@ -103,12 +134,12 @@ class CharacterLoop {
 
   _draw() {
     const { ctx, canvas } = this;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
     if (!this.ready) return;
 
     const img = this.images[this.currentFrame];
     if (!img || !img.complete || img.naturalWidth === 0) return;
 
+    ctx.clearRect(0, 0, this._cssW, this._cssH);
     const maxShiftPx = 10 * this.parallaxStrength;
     const maxTiltDeg = 2.5 * this.parallaxStrength;
 
@@ -122,6 +153,8 @@ class CharacterLoop {
     );
     ctx.drawImage(img, 0, 0, w, h);
     ctx.restore();
+    const poster = this.canvas.parentElement.querySelector('.hero-3d-poster');
+    if (poster) poster.hidden = true;
   }
 
   _resize() {

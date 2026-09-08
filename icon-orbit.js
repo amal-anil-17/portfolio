@@ -21,6 +21,8 @@ class IconOrbit {
     this.container = container;
     this.icons = icons;
     this.clock = new THREE.Clock();
+    this.motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    this.running = false;
     this.mouse = { x: 0, y: 0 };
 
     this._initScene();
@@ -73,12 +75,29 @@ class IconOrbit {
     this.radius = 3.0; // screen-facing circle radius, in world units
 
     this.sprites = this.icons.map((icon, i) => {
-      const texture = icon.src
-        ? loader.load(icon.src)
-        : this._makePlaceholderTexture(icon.label, icon.color || '#4b5563');
-
-      const material = new THREE.SpriteMaterial({ map: texture, transparent: true, depthTest: false, depthWrite: false });
+      const material = new THREE.SpriteMaterial({ transparent: true, depthTest: false, depthWrite: false });
       const sprite = new THREE.Sprite(material);
+
+      if (icon.src) {
+        loader.load(
+          icon.src,
+          (texture) => { material.map = texture; material.needsUpdate = true; this.renderer.render(this.scene, this.camera); },
+          undefined,
+          (err) => {
+            // Falls back to the placeholder badge so the ring never shows a
+            // blank sprite, but logs the exact failing path so it's easy to
+            // tell (via devtools console) whether it's a 404, a bad path,
+            // or something else — rather than failing silently.
+            console.error('[IconOrbit] failed to load icon texture:', icon.src, err);
+            material.map = this._makePlaceholderTexture(icon.label, icon.color || '#4b5563');
+            material.needsUpdate = true;
+            this.renderer.render(this.scene, this.camera);
+          }
+        );
+      } else {
+        material.map = this._makePlaceholderTexture(icon.label, icon.color || '#4b5563');
+        material.needsUpdate = true;
+      }
 
       const scale = 0.85;
       sprite.scale.set(scale, scale, 1);
@@ -93,6 +112,10 @@ class IconOrbit {
   }
 
   _bindEvents() {
+    this.motionQuery.addEventListener('change', () => { this.stop(); this.start(); });
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) this.stop(); else this.start();
+    });
     window.addEventListener('resize', () => this._onResize());
     window.addEventListener('mousemove', (e) => {
       this.mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
@@ -105,11 +128,20 @@ class IconOrbit {
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(w, h);
+    this.renderer.render(this.scene, this.camera);
+  }
+
+  stop() {
+    this.running = false;
+    cancelAnimationFrame(this._raf);
   }
 
   start() {
+    if (this.running || document.hidden) return;
+    this.running = true;
     const animate = () => {
-      const t = this.clock.getElapsedTime();
+      const reduced = this.motionQuery.matches;
+      const t = reduced ? 0 : this.clock.getElapsedTime();
       const angularSpeed = 0.35; // radians/sec
 
       this.sprites.forEach(sprite => {
@@ -121,13 +153,15 @@ class IconOrbit {
       });
 
       // subtle parallax tilt toward the cursor (whole ring shifts slightly, stays screen-facing)
-      const targetX = this.mouse.x * 0.25;
-      const targetY = -this.mouse.y * 0.2;
+      const targetX = reduced ? 0 : this.mouse.x * 0.25;
+      const targetY = reduced ? 0 : -this.mouse.y * 0.2;
+      if (reduced) this.group.position.set(0, 0, 0);
       this.group.position.x += (targetX - this.group.position.x) * 0.05;
       this.group.position.y += (targetY - this.group.position.y) * 0.05;
 
       this.renderer.render(this.scene, this.camera);
-      requestAnimationFrame(animate);
+      if (!reduced) this._raf = requestAnimationFrame(animate);
+      else this.running = false;
     };
     animate();
   }

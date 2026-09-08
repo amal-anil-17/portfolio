@@ -11,6 +11,17 @@
 <link rel="stylesheet" href="styles.css">
 <link rel="stylesheet" href="hero-3d.css">
 <link rel="stylesheet" href="nav-glass.css">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preload" as="image" href="assets/character/frame_0000.webp" fetchpriority="high">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Amal Anilkumar — Graphic &amp; Motion Graphics Designer">
+<meta property="og:description" content="Brand identity, campaign design and motion graphics. Explore Amal Anilkumar’s portfolio and get in touch.">
+<meta property="og:image" content="https://raw.githubusercontent.com/amal-anil-17/portfolio/main/assets/avatar/amal-avatar.png">
+<meta property="og:image:alt" content="Amal Anilkumar">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Amal Anilkumar — Portfolio">
+<meta name="twitter:description" content="Brand identity, campaign design and motion graphics.">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/amal-anil-17/portfolio/main/assets/avatar/amal-avatar.png">
 </head>
 <body>
 <div class="scrub"><div class="scrub-fill" id="scrubFill"></div></div>
@@ -23,7 +34,7 @@
 <a href="#resume"><span>03 /</span> Resume</a>
 <a href="#contact"><span>04 /</span> Contact</a>
 </nav>
-<span class="mono" id="scrubTc">00:00:00:00</span>
+<span class="mono nav-tc" id="scrubTc">00:00:00:00</span>
 </div>
 </header>
 <main>
@@ -36,7 +47,8 @@
 
 <div class="hero-3d-stage" id="heroStage">
 <div id="heroOrbit" class="hero-3d-orbit" style="position:absolute;"></div>
-<canvas class="hero-3d-character" id="heroCharacter"></canvas>
+<img class="hero-3d-poster" src="assets/character/frame_0000.webp" alt="" fetchpriority="high" decoding="async">
+<canvas class="hero-3d-character" id="heroCharacter" aria-hidden="true"></canvas>
 </div>
 
 <h1>Amal Anilkumar</h1>
@@ -289,11 +301,11 @@
 <div class="cf-row cf-two">
 <div class="cf-field">
 <label for="cfFirst">First name</label>
-<input type="text" id="cfFirst" name="firstName" required>
+<input type="text" id="cfFirst" name="firstName" autocomplete="given-name" required>
 </div>
 <div class="cf-field">
 <label for="cfLast">Last name</label>
-<input type="text" id="cfLast" name="lastName">
+<input type="text" id="cfLast" name="lastName" autocomplete="family-name">
 </div>
 </div>
 <div class="cf-row">
@@ -313,7 +325,7 @@
 <div class="cf-row">
 <div class="cf-field">
 <label for="cfEmail">Email</label>
-<input type="email" id="cfEmail" name="email" required>
+<input type="email" id="cfEmail" name="email" autocomplete="email" required>
 </div>
 </div>
 <div class="cf-row">
@@ -322,7 +334,7 @@
 <textarea id="cfMessage" name="message" rows="3"></textarea>
 </div>
 </div>
-<button type="submit" class="btn cf-submit">SEND →</button>
+<button type="submit" class="btn cf-submit">OPEN EMAIL DRAFT →</button>
 <p class="cf-note mono">Opens your email app with this filled in — nothing is sent from here directly.</p>
 </form>
 </div>
@@ -346,32 +358,50 @@
 <script src="icon-orbit.js"></script>
 <script>
 (function () {
-  const character = new CharacterLoop(document.getElementById('heroCharacter'), {
-    framePattern: 'assets/character/frame_{n}.webp',
-    frameCount: 186,
-    padLength: 4,
-    fps: 24,
-  });
-  character.start();
+  const DEFAULT_MANIFEST = { framePattern: 'assets/character/frame_{n}.webp', frameCount: 186, padLength: 4, fps: 24, parallax: { strength: 1 } };
 
-  const stage = document.getElementById('heroStage');
-  stage.addEventListener('mousemove', (e) => {
-    const rect = stage.getBoundingClientRect();
-    character.setPointer((e.clientX - rect.left) / rect.width, (e.clientY - rect.top) / rect.height);
-  });
+  function startCharacter(manifest) {
+    const character = new CharacterLoop(document.getElementById('heroCharacter'), {
+      framePattern: manifest.framePattern,
+      frameCount: manifest.frameCount,
+      padLength: manifest.padLength,
+      fps: manifest.fps,
+      parallaxStrength: manifest.parallax ? manifest.parallax.strength : 1,
+    });
+    character.start();
 
-  // TODO: swap these placeholder badges for real logo SVGs — see README "Icons" section
+    const stage = document.getElementById('heroStage');
+    stage.addEventListener('mousemove', (e) => {
+      const rect = stage.getBoundingClientRect();
+      character.setPointer((e.clientX - rect.left) / rect.width, (e.clientY - rect.top) / rect.height);
+    });
+  }
+
+  // manifest.json is the source of truth for the character sequence config;
+  // fall back to DEFAULT_MANIFEST only if it fails to load (e.g. opened via
+  // file:// where fetch() is blocked by some browsers).
+  fetch('manifest.json')
+    .then((r) => { if (!r.ok) throw new Error('Manifest unavailable'); return r.json(); })
+    .then(startCharacter)
+    .catch(() => startCharacter(DEFAULT_MANIFEST));
+
   const icons = [
-    { label: 'Ps', color: '#001e36' },   // Photoshop
-    { label: 'Ai', color: '#330000' },   // Illustrator
-    { label: 'Pr', color: '#00005b' },   // Premiere Pro
-    { label: 'Ae', color: '#00005b' },   // After Effects
-    { label: 'GPT', color: '#10a37f' },  // ChatGPT
-    { label: 'C', color: '#d97757' },    // Claude
-    { label: 'G', color: '#4285f4' },    // Gemini
+    { label: 'Ps', color: '#001e36', src: 'assets/icons/photoshop.svg' },     // Photoshop
+    { label: 'Ai', color: '#330000', src: 'assets/icons/illustrator.svg' },   // Illustrator
+    { label: 'Pr', color: '#00005b', src: 'assets/icons/premiere.svg' },      // Premiere Pro
+    { label: 'Ae', color: '#00005b', src: 'assets/icons/after-effects.svg' }, // After Effects
+    { label: 'GPT', color: '#10a37f', src: 'assets/icons/chatgpt.svg' },      // ChatGPT
+    { label: 'C', color: '#d97757', src: 'assets/icons/claude.svg' },         // Claude
+    { label: 'G', color: '#4285f4', src: 'assets/icons/gemini.svg' },         // Gemini
   ];
-  const orbit = new IconOrbit(document.getElementById('heroOrbit'), icons);
-  orbit.start();
+  if (window.THREE) {
+    try {
+      const orbit = new IconOrbit(document.getElementById('heroOrbit'), icons);
+      orbit.start();
+    } catch (error) {
+      console.warn('Icon animation unavailable:', error);
+    }
+  }
 })();
 </script>
 </body>

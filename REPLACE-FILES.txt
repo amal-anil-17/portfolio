@@ -1,0 +1,29 @@
+INSTALLATION
+1. Back up your existing portfolio folder.
+2. Copy these seven files into that folder, replacing the six matching files:
+   index.html
+   styles.css
+   hero-3d.css
+   nav-glass.css
+   character-loop.js
+   icon-orbit.js
+   favicon.svg (new)
+3. Keep your assets folder, script.js, nav-scroll.js and manifest.json.
+4. Reload the page with a hard refresh. Use a local web server or your normal hosting to test SVG textures and manifest loading.
+
+CHANGES
+- Work section and unfinished-work placeholders preserved exactly.
+- Contact button now says OPEN EMAIL DRAFT; fields support autofill.
+- First character frame appears before the entire sequence loads.
+- Reduced-motion preference displays a still character and static icons.
+- Animation loops pause when the browser tab is hidden.
+- Narrow navigation uses two rows; long email addresses wrap; keyboard focus is visible.
+- Added an A favicon and social preview metadata using your existing GitHub avatar.
+
+SOCIAL PREVIEW
+The preview image uses the existing public image at:
+https://raw.githubusercontent.com/amal-anil-17/portfolio/main/assets/avatar/amal-avatar.png
+Once you have a final website address, you can replace both image URLs in index.html with the absolute URL of your preferred image on that website. No new social artwork was generated.
+
+CHECKS
+JavaScript syntax checked; character loading and reduced-motion behavior checked in a simulated environment; local HTML asset references and resume presence checked against your ZIP. Work section verified unchanged. No visual browser testing or external social-account verification was performed.
