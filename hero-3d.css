@@ -1,113 +1,71 @@
-/* nav-glass.css pushes the whole body down (92px desktop / 76px mobile) to
-   clear the now-fixed floating nav. Left alone, a hero that's min-height:
-   100svh would then always extend that same amount past the bottom of the
-   screen, since 100svh assumes starting from y=0. Subtracting it here
-   keeps the whole hero content within the first screen instead. */
+/* Full-screen character with a scroll-controlled image sequence. */
 .hero {
-  min-height: calc(100svh - 92px);
-  padding-top: 28px;
+  min-height: 100svh;
+  display: block;
+  padding-top: 22px;
+  padding-bottom: 48px;
+  overflow: visible;
 }
-@media (max-width: 640px) {
-  .hero {
-    min-height: calc(100svh - 76px);
-  }
-}
-
+.hero .eyebrow-row { margin-bottom: 12px; }
+.character-scroll-scene { position: relative; height: 280svh; }
 .hero-3d-stage {
-  --hero-3d-bg: #0e0e0e;
-  position: relative;
-  width: min(640px, 92vw);
-  aspect-ratio: 1 / 0.95;
+  position: sticky;
+  top: 104px;
+  width: 100%;
+  height: calc(100svh - 116px);
   margin: 0 auto;
-  /* pulls the following heading up so it overlaps the lower part of the
-     character, per the "name in front of the character" hero layout.
-     On wide screens the heading is hidden instead (see below), so this
-     gets overridden there to a normal positive gap. */
-  margin-bottom: -60px;
+  isolation: isolate;
 }
-
-/* Larger stage on wide screens — character reads as the focal point   */
-/* instead of competing with a name that's already in the nav bar.     */
-@media (min-width: 900px) {
-  .hero-3d-stage {
-    width: min(700px, 52vw, 45vh);
-  }
-}
-@media (min-width: 1500px) {
-  .hero-3d-stage {
-    width: min(820px, 48vw, 50vh);
-  }
-}
-
-.hero-3d-stage canvas {
+.hero-3d-character, .hero-3d-poster {
   position: absolute;
-}
-
-/* Character sits centered and smaller than the stage, leaving a ring of
-   empty space around it for the icons to orbit through without ever
-   being clipped by the character's silhouette. Adjust this percentage if
-   your cropped frames have different padding. */
-.hero-3d-character {
-  top: 50%;
+  top: 55%;
   left: 50%;
-  width: 62%;
-  height: 62%;
+  width: min(80%, calc((100svh - 150px) * 1.22));
+  aspect-ratio: 500 / 407;
+  height: auto;
+  max-height: 94%;
+  object-fit: contain;
   transform: translate(-50%, -50%);
   z-index: 1;
-  cursor: pointer;
+  animation: none;
 }
-
-/* Icon-orbit canvas fills the whole stage and renders ABOVE the character,
-   so icons are always visible circling around it, never hidden behind it. */
+.hero-3d-poster[hidden] { display: none; }
 .hero-3d-orbit {
+  position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   z-index: 2;
   pointer-events: none;
 }
-
-/* Hero name: single line, layered above everything, sitting over the
-   lower/chest area of the character per the overlap layout. */
+.hero-3d-orbit canvas { display: block; }
 .hero h1 {
   position: relative;
   z-index: 3;
-  white-space: nowrap;
+  white-space: normal;
+  margin-top: 24px;
 }
-
-@media (max-width: 640px) {
-  .hero h1 {
-    white-space: normal; /* allow wrap on narrow phones so text doesn't overflow */
-  }
-}
-
-/* Wide screens: the nav already shows "AMAL ANILKUMAR", so the big hero
-   name is redundant here and just competes with the character for
-   attention — drop it and let the character be the focal point. Swap
-   the stage's overlap margin for a normal gap since there's no heading
-   left to overlap. */
+.hero .role { margin-top: 28px; }
 @media (min-width: 900px) {
-  .hero h1 {
-    display: none;
+  .hero h1 { display: none; }
+}
+@media (max-width: 640px) {
+  .hero-3d-stage { top: 124px; height: calc(100svh - 136px); }
+  .hero-3d-character, .hero-3d-poster {
+    width: 94%;
+    top: 52%;
   }
-  .hero-3d-stage {
-    margin-bottom: 32px;
-  }
+  .character-scroll-scene { height: 230svh; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .character-scroll-scene { height: auto; }
+  .hero-3d-stage { position: relative; top: 0; }
+  .hero-3d-stage * { animation: none !important; transition: none !important; }
 }
 
+/* Keep the scroll track from collapsing inside an existing flex layout. */
+.character-scroll-scene { width: 100%; flex: none; overflow: visible; }
+.hero-3d-stage { position: -webkit-sticky; position: sticky; }
 @media (prefers-reduced-motion: reduce) {
-  .hero-3d-stage * {
-    animation: none !important;
-    transition: none !important;
-  }
-}
-/* First frame remains visible until the canvas can paint. */
-.hero-3d-poster {
-  position: absolute; top: 50%; left: 50%; width: 62%; height: 62%;
-  transform: translate(-50%, -50%); object-fit: fill; z-index: 1;
-}
-.hero-3d-poster[hidden] { display: none; }
-.hero-3d-stage { max-width: 100%; }
-@media (max-width: 640px) {
-  .hero { min-height: calc(100svh - 132px); }
+  .hero-3d-stage { position: relative; }
 }

@@ -101,3 +101,17 @@ body {
   body { padding-top: 132px; }
   .anchor-target { scroll-margin-top: 140px; }
 }
+
+/* Subtle text zoom without moving adjacent navigation links. */
+header.site-nav nav a, header.site-nav .mark {
+  display: inline-block;
+  transform-origin: center;
+  transition: transform 180ms ease, color 180ms ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  header.site-nav nav a:hover, header.site-nav .mark:hover { transform: scale(1.08); }
+}
+header.site-nav nav a:focus-visible, header.site-nav .mark:focus-visible { transform: scale(1.08); }
+@media (prefers-reduced-motion: reduce) {
+  header.site-nav nav a, header.site-nav .mark { transition: none; }
+}

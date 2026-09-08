@@ -1,18 +1,5 @@
-/**
- * CharacterLoop
- * -------------
- * For a single continuous idle-loop image sequence (head/eyes wander,
- * blinks and expression baked in throughout — e.g. a 186-frame turntable
- * or idle animation), rather than separate triggerable clips.
- *
- * What it does:
- *  1. Autoplays the frame sequence on loop at a configurable FPS.
- *  2. Layers a subtle cursor-reactive parallax on top (the whole character
- *     tilts/shifts slightly toward the cursor) via canvas transform — this
- *     gives interactivity without needing directional frame variants.
- *
- * If you later render a true direction-matrix (separate frames per gaze
- * angle), swap this out for a scrubbing player instead.
+/** Scroll-controlled character frames. Existing index.html calls remain compatible.
+ * The stage stays visible during the scroll sequence; scrolling back reverses it.
  */
 class CharacterLoop {
   /**
@@ -35,6 +22,7 @@ class CharacterLoop {
 
     this.motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
     this.running = false;
+    this.hovered = false;
     this.images = [];
     this.ready = false;
     this.currentFrame = 0;
@@ -43,6 +31,17 @@ class CharacterLoop {
     this.pointer = { x: 0.5, y: 0.5 };     // normalized target, 0..1
     this.parallax = { x: 0, y: 0 };        // eased current offset
 
+    canvas.addEventListener('pointerenter', (event) => {
+      if (event.pointerType === 'touch') return;
+      this.hovered = true;
+    });
+    canvas.addEventListener('pointerleave', () => { this.hovered = false; });
+    canvas.addEventListener('pointercancel', () => { this.hovered = false; });
+    const stage = canvas.closest('.hero-3d-stage');
+    this.scrollScene = document.createElement('div');
+    this.scrollScene.className = 'character-scroll-scene';
+    stage.before(this.scrollScene);
+    this.scrollScene.appendChild(stage);
     this._resize();
     window.addEventListener('resize', () => { this._resize(); this._draw(); });
     this.motionQuery.addEventListener('change', () => {
@@ -58,12 +57,17 @@ class CharacterLoop {
       if (document.hidden) this.stop(); else this.start();
     });
 
+    window.addEventListener('pageshow', () => { this._resize(); this.start(); });
+    if ('ResizeObserver' in window) {
+      this.resizeObserver = new ResizeObserver(() => { this._resize(); this._draw(); });
+      this.resizeObserver.observe(canvas);
+    }
     this._loadFrames();
   }
 
   /** Normalized (0..1, 0..1) pointer position relative to the character's bounding box. */
   setPointer(nx, ny) {
-    if (this.motionQuery.matches) return;
+    if (this.motionQuery.matches || this.hovered) return;
     this.pointer.x = Math.min(1, Math.max(0, nx));
     this.pointer.y = Math.min(1, Math.max(0, ny));
   }
@@ -91,39 +95,76 @@ class CharacterLoop {
   async _loadFrames() {
     if (this.loading || this.loadedAll) return;
     this.loading = true;
+    const attempted = new Set();
+    let interrupted = false;
     const loadOne = (n) => new Promise((resolve) => {
       if (this.images[n]) { resolve(); return; }
+      attempted.add(n);
       const img = new Image();
-      img.onload = () => {
-        this.images[n] = img;
-        if (!this.ready) {
+      let finished = false;
+      const finish = (ok) => {
+        if (finished) return;
+        finished = true;
+        clearTimeout(timeout);
+        img.onload = img.onerror = null;
+        if (ok) {
+          this.images[n] = img;
           this.ready = true;
-          this.currentFrame = n;
+          if (this.motionQuery.matches) this.currentFrame = 0;
+          else this._update(performance.now());
           this._draw();
         }
         resolve();
       };
-      img.onerror = resolve;
+      const timeout = setTimeout(() => finish(false), 12000);
+      img.onload = () => finish(true);
+      img.onerror = () => finish(false);
       img.src = this.framePattern.replace('{n}', String(n).padStart(this.padLength, '0'));
     });
+    // Cover the whole animation early, instead of downloading only its start.
+    const previews = Array.from(new Set(Array.from({ length: 16 }, (_, i) =>
+      Math.round(i * (this.frameCount - 1) / 15))));
+    const nextFrame = () => {
+      // Every other request prioritizes the frame currently under the scroll.
+      const target = Math.min(this.frameCount - 1, Math.max(0, this.currentFrame));
+      this._requestCount = (this._requestCount || 0) + 1;
+      if (this._requestCount % 2 && !attempted.has(target) && !this.images[target]) return target;
+      const preview = previews.find(n => !attempted.has(n) && !this.images[n]);
+      if (preview !== undefined) return preview;
+      for (let distance = 0; distance < this.frameCount; distance++) {
+        for (const n of [target + distance, target - distance]) {
+          if (n >= 0 && n < this.frameCount && !attempted.has(n) && !this.images[n]) return n;
+        }
+      }
+      return undefined;
+    };
     try {
       await loadOne(0);
-      for (let i = 1; i < this.frameCount; i += 6) {
-        if (this.motionQuery.matches) return;
-        const batch = [];
-        for (let j = i; j < Math.min(i + 6, this.frameCount); j++) batch.push(loadOne(j));
-        await Promise.all(batch);
-      }
-      this.loadedAll = true;
-    } finally { this.loading = false; }
+      const worker = async () => {
+        while (!this.motionQuery.matches) {
+          const n = nextFrame();
+          if (n === undefined) return;
+          await loadOne(n);
+        }
+        interrupted = true;
+      };
+      await Promise.all(Array.from({ length: 6 }, () => worker()));
+      this.loadedAll = this.images.filter(Boolean).length === this.frameCount;
+    } finally {
+      this.loading = false;
+      // Handle a preference change while the last pending request was finishing.
+      if (interrupted && !this.motionQuery.matches && !this.loadedAll) this._loadFrames();
+    }
   }
 
   _update(t) {
-    const frameDuration = 1000 / this.fps;
-    if (t - this._lastTickTime >= frameDuration) {
-      this._lastTickTime = t;
-      this.currentFrame = (this.currentFrame + 1) % this.frameCount;
-    }
+    if (this.hovered) return;
+    const rect = this.scrollScene.getBoundingClientRect();
+    const stage = this.canvas.closest('.hero-3d-stage');
+    const stickyTop = parseFloat(getComputedStyle(stage).top) || 0;
+    const travel = Math.max(1, this.scrollScene.offsetHeight - stage.offsetHeight);
+    const progress = Math.min(1, Math.max(0, (stickyTop - rect.top) / travel));
+    this.currentFrame = Math.round(progress * (this.frameCount - 1));
 
     // ease parallax toward cursor target (centered at 0.5, 0.5 => 0 offset)
     const targetX = (this.pointer.x - 0.5) * 2; // -1..1
@@ -133,10 +174,18 @@ class CharacterLoop {
   }
 
   _draw() {
+    if (this.hovered && this.hasPainted) return;
     const { ctx, canvas } = this;
     if (!this.ready) return;
 
-    const img = this.images[this.currentFrame];
+    // While loading, use the closest available frame rather than a blank canvas.
+    let img = this.images[this.currentFrame];
+    if (!img) {
+      for (let distance = 1; distance < this.frameCount; distance++) {
+        img = this.images[this.currentFrame - distance] || this.images[this.currentFrame + distance];
+        if (img) break;
+      }
+    }
     if (!img || !img.complete || img.naturalWidth === 0) return;
 
     ctx.clearRect(0, 0, this._cssW, this._cssH);
@@ -153,6 +202,7 @@ class CharacterLoop {
     );
     ctx.drawImage(img, 0, 0, w, h);
     ctx.restore();
+    this.hasPainted = true;
     const poster = this.canvas.parentElement.querySelector('.hero-3d-poster');
     if (poster) poster.hidden = true;
   }
@@ -160,6 +210,8 @@ class CharacterLoop {
   _resize() {
     const rect = this.canvas.getBoundingClientRect();
     const dpr = window.devicePixelRatio || 1;
+    if (this.canvas.width === Math.round(rect.width * dpr) && this.canvas.height === Math.round(rect.height * dpr)) return;
+    this.hasPainted = false;
     this.canvas.width = rect.width * dpr;
     this.canvas.height = rect.height * dpr;
     this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
