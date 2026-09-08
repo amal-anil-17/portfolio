@@ -22,6 +22,32 @@ class CharacterLoop {
 
     this.motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
     this.running = false;
+    this.workTransitioned = false;
+    this.lastScrollY = window.scrollY;
+    this.lastDownScroll = -Infinity;
+    this.lastUpScroll = -Infinity;
+    this.endSince = null;
+    this.transitionRAF = null;
+    this.transitionCancelled = false;
+    const cancelTransition = () => {
+      if (this.transitionRAF !== null) {
+        cancelAnimationFrame(this.transitionRAF);
+        this.transitionRAF = null;
+        this.transitionCancelled = true;
+      }
+    };
+    window.addEventListener('wheel', cancelTransition, { passive: true });
+    window.addEventListener('touchstart', cancelTransition, { passive: true });
+    window.addEventListener('pointerdown', cancelTransition, { passive: true });
+    window.addEventListener('keydown', (e) => {
+      if (['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', ' ', 'Escape'].includes(e.key)) cancelTransition();
+    });
+    window.addEventListener('scroll', () => {
+      const next = window.scrollY;
+      if (next < this.lastScrollY) this.lastUpScroll = performance.now();
+      if (next > this.lastScrollY) this.lastDownScroll = performance.now();
+      this.lastScrollY = next;
+    }, { passive: true });
     this.images = [];
     this.ready = false;
     this.currentFrame = 0;
@@ -154,7 +180,47 @@ class CharacterLoop {
     const travel = Math.max(1, this.scrollScene.offsetHeight - stage.offsetHeight);
     const progress = Math.min(1, Math.max(0, (stickyTop - rect.top) / travel));
     this.currentFrame = Math.round(progress * (this.frameCount - 1));
+    if (progress < 0.75) {
+      this.workTransitioned = false;
+      this.endSince = null;
+      this.transitionCancelled = false;
+    }
+    // Allow a slow final-frame download without a tiny 250ms trigger window.
+    const sceneVisible = rect.bottom > stickyTop && rect.top < window.innerHeight;
+    const scrollingDown = this.lastDownScroll > this.lastUpScroll;
+    if (progress >= 0.99 && sceneVisible && scrollingDown && !this.workTransitioned
+        && !this.transitionCancelled && this.images[this.frameCount - 1]
+        && !this.motionQuery.matches) {
+      this.currentFrame = this.frameCount - 1;
+      if (this.endSince === null) this.endSince = performance.now();
+      if (performance.now() - this.endSince >= 350) {
+        const work = document.getElementById('work');
+        if (work) {
+          this.workTransitioned = true;
+          this._scrollToWork(work);
+        }
+      }
+    } else {
+      this.endSince = null;
+    }
+  }
 
+  _scrollToWork(work) {
+    const startY = window.scrollY;
+    const margin = parseFloat(getComputedStyle(work).scrollMarginTop) || 104;
+    const maxY = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+    const targetY = Math.min(maxY, Math.max(0, startY + work.getBoundingClientRect().top - margin));
+    const started = performance.now();
+    const duration = 1250;
+    const step = (now) => {
+      if (this.motionQuery.matches || document.hidden) { this.transitionRAF = null; return; }
+      const progress = Math.min(1, (now - started) / duration);
+      const eased = progress < 0.5 ? 4 * progress ** 3 : 1 - (-2 * progress + 2) ** 3 / 2;
+      // Instant per-frame movement avoids competing with CSS smooth scrolling.
+      window.scrollTo({ top: startY + (targetY - startY) * eased, behavior: 'instant' });
+      this.transitionRAF = progress < 1 ? requestAnimationFrame(step) : null;
+    };
+    this.transitionRAF = requestAnimationFrame(step);
   }
 
   _draw() {

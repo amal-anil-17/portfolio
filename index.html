@@ -353,9 +353,8 @@
 <script src="nav-scroll.js"></script>
 
 <!-- Hero 3D: idle-loop character + Three.js icon orbit -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="character-loop.js"></script>
-<script src="icon-orbit.js"></script>
+<script src="icon-orbit.js?v=svg-mobile-1"></script>
 <script>
 (function () {
   const DEFAULT_MANIFEST = { framePattern: 'assets/character/frame_{n}.webp', frameCount: 186, padLength: 4, fps: 24, parallax: { strength: 1 } };
@@ -394,7 +393,7 @@
     { label: 'C', color: '#d97757', src: 'assets/icons/claude.svg' },         // Claude
     { label: 'G', color: '#4285f4', src: 'assets/icons/gemini.svg' },         // Gemini
   ];
-  if (window.THREE) {
+  if (window.IconOrbit) {
     try {
       const orbit = new IconOrbit(document.getElementById('heroOrbit'), icons);
       orbit.start();

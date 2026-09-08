@@ -12,7 +12,7 @@
   position: sticky;
   top: 104px;
   width: 100%;
-  height: calc(100svh - 116px);
+  height: calc(100svh - 104px);
   margin: 0 auto;
   isolation: isolate;
 }
@@ -50,7 +50,7 @@
   .hero h1 { display: none; }
 }
 @media (max-width: 640px) {
-  .hero-3d-stage { top: 124px; height: calc(100svh - 136px); }
+  .hero-3d-stage { top: 124px; height: calc(100svh - 124px); }
   .hero-3d-character, .hero-3d-poster {
     width: 94%;
     top: 52%;
@@ -81,4 +81,15 @@
   translate: none !important;
   rotate: none !important;
   scale: none !important;
+}
+
+/* Anchor the portrait to the bottom edge of the pinned hero viewport. */
+.hero-3d-character,
+.hero-3d-poster,
+.hero-3d-character:hover,
+.hero-3d-poster:hover {
+  top: auto !important;
+  bottom: 0 !important;
+  left: 50%;
+  transform: translateX(-50%) !important;
 }
