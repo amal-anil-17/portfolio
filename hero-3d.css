@@ -69,3 +69,16 @@
 @media (prefers-reduced-motion: reduce) {
   .hero-3d-stage { position: relative; }
 }
+
+/* Keep the character fixed in place: no CSS bobbing, tilting or hover motion. */
+.hero-3d-character,
+.hero-3d-poster,
+.hero-3d-character:hover,
+.hero-3d-poster:hover {
+  animation: none !important;
+  transition: none !important;
+  transform: translate(-50%, -50%) !important;
+  translate: none !important;
+  rotate: none !important;
+  scale: none !important;
+}

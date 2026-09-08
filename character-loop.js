@@ -22,7 +22,6 @@ class CharacterLoop {
 
     this.motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
     this.running = false;
-    this.hovered = false;
     this.images = [];
     this.ready = false;
     this.currentFrame = 0;
@@ -31,12 +30,6 @@ class CharacterLoop {
     this.pointer = { x: 0.5, y: 0.5 };     // normalized target, 0..1
     this.parallax = { x: 0, y: 0 };        // eased current offset
 
-    canvas.addEventListener('pointerenter', (event) => {
-      if (event.pointerType === 'touch') return;
-      this.hovered = true;
-    });
-    canvas.addEventListener('pointerleave', () => { this.hovered = false; });
-    canvas.addEventListener('pointercancel', () => { this.hovered = false; });
     const stage = canvas.closest('.hero-3d-stage');
     this.scrollScene = document.createElement('div');
     this.scrollScene.className = 'character-scroll-scene';
@@ -66,11 +59,8 @@ class CharacterLoop {
   }
 
   /** Normalized (0..1, 0..1) pointer position relative to the character's bounding box. */
-  setPointer(nx, ny) {
-    if (this.motionQuery.matches || this.hovered) return;
-    this.pointer.x = Math.min(1, Math.max(0, nx));
-    this.pointer.y = Math.min(1, Math.max(0, ny));
-  }
+  // Kept for compatibility with index.html; the portrait no longer follows the cursor.
+  setPointer() {}
 
   start() {
     if (this.running || document.hidden) return;
@@ -158,7 +148,6 @@ class CharacterLoop {
   }
 
   _update(t) {
-    if (this.hovered) return;
     const rect = this.scrollScene.getBoundingClientRect();
     const stage = this.canvas.closest('.hero-3d-stage');
     const stickyTop = parseFloat(getComputedStyle(stage).top) || 0;
@@ -166,15 +155,9 @@ class CharacterLoop {
     const progress = Math.min(1, Math.max(0, (stickyTop - rect.top) / travel));
     this.currentFrame = Math.round(progress * (this.frameCount - 1));
 
-    // ease parallax toward cursor target (centered at 0.5, 0.5 => 0 offset)
-    const targetX = (this.pointer.x - 0.5) * 2; // -1..1
-    const targetY = (this.pointer.y - 0.5) * 2;
-    this.parallax.x += (targetX - this.parallax.x) * 0.06;
-    this.parallax.y += (targetY - this.parallax.y) * 0.06;
   }
 
   _draw() {
-    if (this.hovered && this.hasPainted) return;
     const { ctx, canvas } = this;
     if (!this.ready) return;
 
@@ -189,19 +172,7 @@ class CharacterLoop {
     if (!img || !img.complete || img.naturalWidth === 0) return;
 
     ctx.clearRect(0, 0, this._cssW, this._cssH);
-    const maxShiftPx = 10 * this.parallaxStrength;
-    const maxTiltDeg = 2.5 * this.parallaxStrength;
-
-    const w = this._cssW, h = this._cssH;
-    ctx.save();
-    ctx.translate(w / 2, h / 2);
-    ctx.rotate((this.parallax.x * maxTiltDeg) * Math.PI / 180);
-    ctx.translate(
-      -w / 2 + this.parallax.x * maxShiftPx,
-      -h / 2 + this.parallax.y * maxShiftPx * 0.5
-    );
-    ctx.drawImage(img, 0, 0, w, h);
-    ctx.restore();
+    ctx.drawImage(img, 0, 0, this._cssW, this._cssH);
     this.hasPainted = true;
     const poster = this.canvas.parentElement.querySelector('.hero-3d-poster');
     if (poster) poster.hidden = true;
