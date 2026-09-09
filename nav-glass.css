@@ -207,3 +207,61 @@ header.site-nav nav a:focus-visible, header.site-nav .mark:focus-visible { trans
   border-radius: 2px;
   background: #fff;
 }
+
+/* Square corners in every navigation state and screen size. */
+header.site-nav,
+header.site-nav.is-scrolled,
+header.site-nav.has-mobile-menu,
+header.site-nav.has-mobile-menu.is-scrolled {
+  border-radius: 0 !important;
+}
+
+/* At the top: edge-to-edge header. After scrolling: detached rectangle. */
+header.site-nav:not(.is-scrolled),
+header.site-nav.has-mobile-menu:not(.is-scrolled) {
+  top: 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  padding: 20px var(--gutter) !important;
+  border-top: 0;
+  border-left: 0;
+  border-right: 0;
+  box-shadow: none;
+}
+header.site-nav.is-scrolled,
+header.site-nav.has-mobile-menu.is-scrolled {
+  top: 14px !important;
+  width: min(1100px, 92%) !important;
+  max-width: 92% !important;
+  border: 1px solid var(--line);
+}
+@media (max-width: 640px) {
+  header.site-nav.has-mobile-menu:not(.is-scrolled) {
+    padding: 12px 20px !important;
+  }
+  header.site-nav.has-mobile-menu.is-scrolled {
+    padding: 10px 16px !important;
+  }
+}
+
+/* Compact rounded bar only after scrolling. */
+header.site-nav.is-scrolled,
+header.site-nav.has-mobile-menu.is-scrolled {
+  width: min(960px, 88%) !important;
+  max-width: 88% !important;
+  border-radius: 20px !important;
+  padding: 10px 24px !important;
+}
+@media (max-width: 1100px) and (min-width: 641px) {
+  header.site-nav.is-scrolled #scrubTc { display: none; }
+  header.site-nav.is-scrolled .nav-right,
+  header.site-nav.is-scrolled nav { gap: 18px; }
+}
+@media (max-width: 640px) {
+  header.site-nav.has-mobile-menu.is-scrolled {
+    width: 90% !important;
+    max-width: 90% !important;
+    border-radius: 18px !important;
+    padding: 10px 16px !important;
+  }
+}

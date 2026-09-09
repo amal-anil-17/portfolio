@@ -673,3 +673,19 @@ select:focus-visible, textarea:focus-visible { outline: 2px solid var(--cyan); o
   border-radius: 1px;
   flex-shrink: 0;
 }
+
+/* Reveal the original asset colors when hovering a client logo in light mode. */
+@media (prefers-color-scheme: light) {
+  .client-logo img { transition: opacity 0.25s ease, filter 0.25s ease; }
+  .client-logo:hover img,
+  .client-logo:focus-within img {
+    filter: none;
+    opacity: 1;
+  }
+}
+
+/* Halve the vertical padding around content sections. */
+main > section:not(.hero) { padding-top: 84px; padding-bottom: 84px; }
+@media (max-width: 768px) {
+  main > section:not(.hero) { padding-top: 50px; padding-bottom: 50px; }
+}
