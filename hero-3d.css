@@ -93,3 +93,26 @@
   left: 50%;
   transform: translateX(-50%) !important;
 }
+
+/* Tall phones need a height-led portrait, not a narrow width-led thumbnail. */
+@media (max-width: 640px) {
+  .hero-3d-stage {
+    overflow: clip;
+  }
+  .hero-3d-character,
+  .hero-3d-poster {
+    width: auto !important;
+    height: 82% !important;
+    max-width: none !important;
+    max-height: none !important;
+    aspect-ratio: 500 / 407;
+    bottom: 0 !important;
+    object-fit: contain;
+  }
+  /* Keep the top icons close to the head on tall screens. */
+  .hero-3d-orbit {
+    top: auto;
+    bottom: 0;
+    height: 94%;
+  }
+}

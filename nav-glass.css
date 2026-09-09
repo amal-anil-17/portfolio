@@ -115,3 +115,95 @@ header.site-nav nav a:focus-visible, header.site-nav .mark:focus-visible { trans
 @media (prefers-reduced-motion: reduce) {
   header.site-nav nav a, header.site-nav .mark { transition: none; }
 }
+
+/* Mobile-only, two-line menu and full-screen navigation. */
+.mobile-menu-toggle { display: none; }
+.mobile-menu-dialog:not([open]) { display: none; }
+.mobile-menu-dialog {
+  box-sizing: border-box;
+  position: fixed; inset: 0; margin: 0;
+  width: 100%; max-width: none; height: 100dvh; max-height: none;
+  padding: max(24px, env(safe-area-inset-top)) 24px max(28px, env(safe-area-inset-bottom));
+  border: 0; background: #101112; color: #f5f5f5;
+  font-family: 'Inter', sans-serif; overflow-y: auto;
+}
+.mobile-menu-dialog[open] { display: flex; flex-direction: column; }
+.mobile-menu-dialog::backdrop { background: #101112; }
+.mobile-menu-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.mobile-menu-top > span { font-size: 15px; font-weight: 700; }
+.mobile-menu-toggle, .mobile-menu-close {
+  flex: 0 0 44px; width: 44px; height: 44px; border-radius: 50%;
+  border: 0; background: #f5f5f5; color: #101112; cursor: pointer;
+  position: relative; padding: 0;
+}
+.mobile-menu-toggle span, .mobile-menu-close span {
+  position: absolute; left: 12px; width: 20px; height: 1.5px;
+  background: currentColor; top: 18px;
+}
+.mobile-menu-toggle span + span { top: 24px; }
+.mobile-menu-close span { top: 21px; transform: rotate(45deg); }
+.mobile-menu-close span + span { transform: rotate(-45deg); }
+.mobile-menu-links { display: flex; flex-direction: column; align-items: flex-start; gap: 18px; margin: clamp(48px, 12vh, 110px) 0 48px; }
+.mobile-menu-links a { font-size: clamp(36px, 10vw, 48px); line-height: 1.2; letter-spacing: -0.04em; color: inherit; text-decoration: none; }
+.mobile-menu-links a:hover { color: #dba641; }
+.mobile-menu-footer { margin-top: auto; font-size: 13px; line-height: 1.6; }
+.mobile-menu-footer a { display: inline-block; color: inherit; margin-top: 12px; text-decoration: none; border-bottom: 1px solid #777; padding-bottom: 6px; }
+.mobile-menu-dialog button:focus-visible, .mobile-menu-dialog a:focus-visible,
+.mobile-menu-toggle:focus-visible { outline: 2px solid #dba641; outline-offset: 5px; }
+@media (max-width: 640px) {
+  header.site-nav.has-mobile-menu,
+  header.site-nav.has-mobile-menu.is-scrolled {
+    flex-direction: row; justify-content: space-between; align-items: center;
+    padding: 10px 16px !important; gap: 10px; border-radius: 24px !important;
+  }
+  header.site-nav.has-mobile-menu .mark { font-size: clamp(12px, 3.6vw, 15px); }
+  header.site-nav.has-mobile-menu .nav-right { display: none; }
+  .mobile-menu-toggle { display: block; }
+}
+
+/* Morph the menu lines into an X; reverse before dismissing the menu. */
+.mobile-menu-close span {
+  top: 18px;
+  transform: translateY(0) rotate(0deg);
+  transform-origin: center;
+  transition: transform 240ms cubic-bezier(.4, 0, .2, 1);
+}
+.mobile-menu-close span + span {
+  top: 24px;
+  transform: translateY(0) rotate(0deg);
+}
+.mobile-menu-dialog.is-menu-open .mobile-menu-close span {
+  transform: translateY(3px) rotate(45deg);
+}
+.mobile-menu-dialog.is-menu-open .mobile-menu-close span + span {
+  transform: translateY(-3px) rotate(-45deg);
+}
+@media (prefers-reduced-motion: reduce) {
+  .mobile-menu-close span { transition: none; }
+}
+
+/* Open menu: only the close control appears in the top row. */
+.mobile-menu-top > span { display: none; }
+.mobile-menu-top { justify-content: flex-end; }
+
+/* Same screen position for the hamburger and close icon. */
+.mobile-menu-toggle, .mobile-menu-close {
+  background: transparent;
+  color: #fff;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+.mobile-menu-close {
+  position: fixed;
+  margin: 0;
+  z-index: 1;
+}
+.mobile-menu-top { min-height: 44px; }
+.mobile-menu-toggle span, .mobile-menu-close span {
+  left: 10px;
+  width: 24px;
+  height: 2.5px;
+  border-radius: 2px;
+  background: #fff;
+}

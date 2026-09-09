@@ -649,3 +649,27 @@ select:focus-visible, textarea:focus-visible { outline: 2px solid var(--cyan); o
   *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
   .reveal { opacity: 1 !important; transform: none !important; }
 }
+
+/* Contact: left-aligned form, followed by social links. */
+.contact-split {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 24px;
+  border-top: 0;
+  padding-top: 0;
+  margin-top: 40px;
+}
+.contact-split .contact-form { width: min(100%, 760px); }
+.contact-split .contact-icons { justify-content: flex-start; }
+.contact-availability { margin: 0; color: var(--text-soft); }
+
+/* Short orange accent beneath the contact heading. */
+.contact-heading-accent {
+  width: 72px;
+  height: 6px;
+  margin-top: 24px;
+  background: #f59e0b;
+  border-radius: 1px;
+  flex-shrink: 0;
+}
