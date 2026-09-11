@@ -1,3 +1,7 @@
+ARCHIVED UPDATE NOTES
+These notes describe an earlier update, before the folder reorganization.
+The installation paths below are historical; see ../README.md for the current layout.
+
 INSTALLATION
 1. Back up your existing portfolio folder.
 2. Copy these seven files into that folder, replacing the six matching files:

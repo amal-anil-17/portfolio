@@ -265,3 +265,13 @@ header.site-nav.has-mobile-menu.is-scrolled {
     padding: 10px 16px !important;
   }
 }
+
+/* Hide the focus box after tapping; retain keyboard focus visibility. */
+.mobile-menu-dialog:not(.keyboard-navigation) .mobile-menu-close:focus,
+.mobile-menu-dialog:not(.keyboard-navigation) .mobile-menu-close:focus-visible,
+header.site-nav:not(.keyboard-navigation) .mobile-menu-toggle:focus,
+header.site-nav:not(.keyboard-navigation) .mobile-menu-toggle:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+.mobile-menu-close, .mobile-menu-toggle { -webkit-tap-highlight-color: transparent; }

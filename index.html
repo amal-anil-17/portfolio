@@ -8,9 +8,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css">
-<link rel="stylesheet" href="hero-3d.css">
-<link rel="stylesheet" href="nav-glass.css">
+<link rel="stylesheet" href="css/styles.css">
+<link rel="stylesheet" href="css/hero-3d.css">
+<link rel="stylesheet" href="css/nav-glass.css">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="preload" as="image" href="assets/character/frame_0000.webp" fetchpriority="high">
 <meta property="og:type" content="website">
@@ -26,7 +26,7 @@
 <body>
 <div class="scrub"><div class="scrub-fill" id="scrubFill"></div></div>
 <header class="site-nav">
-<a href="#top" class="mark">AMAL ANILKUMAR</a>
+<a href="#top" class="mark" aria-label="Amal Anilkumar — home"><img src="assets/brand/amal-anilkumar-logo.svg" alt="Amal Anilkumar" width="64" height="28"></a>
 <div class="nav-right">
 <nav>
 <a href="#work"><span>01 /</span> Work</a>
@@ -332,12 +332,12 @@
 <span>© <span id="year"></span> AMAL ANILKUMAR</span>
 <span>KOCHI, KERALA, INDIA</span>
 </footer>
-<script src="script.js"></script>
-<script src="nav-scroll.js"></script>
+<script src="js/script.js"></script>
+<script src="js/nav-scroll.js"></script>
 
 <!-- Hero 3D: idle-loop character + Three.js icon orbit -->
-<script src="character-loop.js"></script>
-<script src="icon-orbit.js?v=svg-mobile-1"></script>
+<script src="js/character-loop.js"></script>
+<script src="js/icon-orbit.js?v=svg-mobile-1"></script>
 <script>
 (function () {
   const DEFAULT_MANIFEST = { framePattern: 'assets/character/frame_{n}.webp', frameCount: 186, padLength: 4, fps: 24, parallax: { strength: 1 } };
@@ -359,10 +359,10 @@
     });
   }
 
-  // manifest.json is the source of truth for the character sequence config;
+  // config/character.json is the source of truth for the character sequence config;
   // fall back to DEFAULT_MANIFEST only if it fails to load (e.g. opened via
   // file:// where fetch() is blocked by some browsers).
-  fetch('manifest.json')
+  fetch('config/character.json')
     .then((r) => { if (!r.ok) throw new Error('Manifest unavailable'); return r.json(); })
     .then(startCharacter)
     .catch(() => startCharacter(DEFAULT_MANIFEST));

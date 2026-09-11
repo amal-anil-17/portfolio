@@ -132,5 +132,16 @@
     });
   });
   mobile.addEventListener('change', () => { if (!mobile.matches) closeMenu(); });
+  // Track input method: a programmatic focus after tapping should not draw a ring.
+  document.addEventListener('pointerdown', () => {
+    dialog.classList.remove('keyboard-navigation');
+    header.classList.remove('keyboard-navigation');
+  }, true);
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Tab' || event.key.startsWith('Arrow')) {
+      dialog.classList.add('keyboard-navigation');
+      header.classList.add('keyboard-navigation');
+    }
+  }, true);
   header.classList.add('has-mobile-menu');
 })();
